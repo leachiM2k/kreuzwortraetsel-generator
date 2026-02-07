@@ -131,7 +131,7 @@ export class WordPlacementService {
   }
 
   private findIntersections(
-    grid: CrosswordGrid,
+    _grid: CrosswordGrid,
     newWord: string,
     existingWord: PlacedWord
   ): PlacementOption[] {

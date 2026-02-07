@@ -3,7 +3,6 @@ import { CrosswordLayoutService } from './services/CrosswordLayoutService';
 import { PDFGeneratorService } from './services/PDFGeneratorService';
 import { WordEntry } from './models/WordEntry';
 import { CrosswordPuzzle } from './models/CrosswordPuzzle';
-import { Direction } from './models/Direction';
 
 class CrosswordApp {
   private layoutService: CrosswordLayoutService;
