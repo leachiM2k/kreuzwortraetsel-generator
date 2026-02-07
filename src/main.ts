@@ -343,7 +343,7 @@ class CrosswordApp {
           'play-btn'
       ) as HTMLLinkElement;
       if (playBtn) {
-        playBtn.href = `/play.html#${encodedData}`;
+        playBtn.href = `./play.html#${encodedData}`;
         playBtn.classList.remove('btn-disabled');
       }
 
