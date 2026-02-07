@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kreuzworträtsel Generator</title>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🧩 Kreuzworträtsel Generator</h1>
+        <p class="subtitle">
+          Erstelle dein eigenes Kreuzworträtsel - Einfach, schnell und kostenlos
+        </p>
+      </header>
+
+      <main>
+        <div class="input-section">
+          <div class="form-group">
+            <label for="title">Titel des Kreuzworträtsels</label>
+            <input
+              type="text"
+              id="title"
+              placeholder="z.B. Tiere, Geografie, Geschichte..."
+              value="Mein Kreuzworträtsel"
+            />
+          </div>
+
+          <div class="entries-section">
+            <div class="entries-header">
+              <h2>Fragen und Antworten</h2>
+              <button id="sample-btn" class="btn btn-secondary">
+                Beispiel laden
+              </button>
+            </div>
+
+            <div id="entries-container">
+              <!-- Entries will be added here -->
+            </div>
+
+            <button id="add-entry-btn" class="btn btn-secondary">
+              + Eintrag hinzufügen
+            </button>
+          </div>
+
+          <div class="actions">
+            <button id="preview-btn" class="btn btn-primary">
+              Vorschau erstellen
+            </button>
+            <button id="generate-btn" class="btn btn-success" disabled>
+              PDF generieren
+            </button>
+          </div>
+
+          <div id="error-message" class="error-message"></div>
+        </div>
+
+        <div class="preview-section">
+          <h2>Vorschau</h2>
+          <div id="preview-container">
+            <div class="preview-placeholder">
+              Klicke auf "Vorschau erstellen" um dein Kreuzworträtsel zu sehen
+            </div>
+          </div>
+
+          <div id="clues-container" style="display: none;">
+            <div class="clues-column">
+              <h3>Waagerecht</h3>
+              <div id="across-clues"></div>
+            </div>
+            <div class="clues-column">
+              <h3>Senkrecht</h3>
+              <div id="down-clues"></div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer>
+        <p>
+          Client-only Kreuzworträtsel Generator • Alle Daten bleiben auf deinem
+          Gerät • Made with TypeScript & Vite
+        </p>
+      </footer>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
