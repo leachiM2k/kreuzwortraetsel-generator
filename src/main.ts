@@ -184,13 +184,15 @@ class CrosswordApp {
       this.renderPreview(this.currentPuzzle);
       this.renderClues(this.currentPuzzle);
 
-      // Enable PDF button
+      // Enable PDF and Play buttons
       const generateBtn = document.getElementById(
         'generate-btn'
       ) as HTMLButtonElement;
       if (generateBtn) {
         generateBtn.disabled = false;
       }
+
+      this.setPlayPageLink();
 
       this.showMessage(
         `Kreuzworträtsel erfolgreich erstellt! ${this.currentPuzzle.grid.placedWords.length} Wörter platziert.`,
@@ -302,6 +304,31 @@ class CrosswordApp {
     } catch (err) {
       console.error(err);
       this.showMessage('Fehler beim Erstellen des PDFs', 'error');
+    }
+  }
+
+  private setPlayPageLink(): void {
+    if (!this.currentPuzzle) {
+      this.showMessage('Bitte erstelle zuerst eine Vorschau.', 'error');
+      return;
+    }
+
+    try {
+      // Serialize puzzle to JSON and encode to base64
+      const puzzleData = JSON.stringify(this.currentPuzzle);
+      const encodedData = btoa(puzzleData);
+
+      const playBtn = document.getElementById(
+          'play-btn'
+      ) as HTMLLinkElement;
+      if (playBtn) {
+        playBtn.href = `/play.html#${encodedData}`;
+        playBtn.classList.remove('btn-disabled');
+      }
+
+    } catch (err) {
+      console.error(err);
+      this.showMessage('Fehler beim Öffnen der Spielseite', 'error');
     }
   }
 

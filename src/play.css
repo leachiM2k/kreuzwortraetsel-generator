@@ -1,0 +1,230 @@
+@import './style.css';
+
+.play-container {
+  min-height: 100vh;
+  background: var(--bg-color);
+}
+
+.play-header {
+  background: var(--card-bg);
+  padding: 1.5rem 2rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+}
+
+.play-header h1 {
+  flex: 1;
+  text-align: center;
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.back-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.back-link:hover {
+  color: #1d4ed8;
+}
+
+.play-content {
+  max-width: 1400px;
+  margin: 2rem auto;
+  padding: 0 2rem;
+  display: grid;
+  grid-template-columns: auto 400px;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .play-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+.grid-section {
+  background: var(--card-bg);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+#game-grid-container {
+  display: inline-block;
+  margin: 0 auto 2rem;
+}
+
+.game-grid {
+  display: inline-grid;
+  gap: 0;
+  border: 3px solid var(--text-primary);
+  background: var(--text-primary);
+}
+
+.game-cell {
+  width: 45px;
+  height: 45px;
+  border: 1px solid var(--text-primary);
+  background: white;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.game-cell.empty {
+  background: var(--text-primary);
+  cursor: default;
+  pointer-events: none;
+}
+
+.game-cell.active {
+  background: #dbeafe;
+}
+
+.game-cell.highlighted {
+  background: #e0f2fe;
+}
+
+.game-cell.correct {
+  background: #d1fae5;
+}
+
+.game-cell.incorrect {
+  background: #fee2e2;
+}
+
+.game-cell input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 0;
+  outline: none;
+  caret-color: var(--primary-color);
+}
+
+.game-cell .cell-number {
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.controls {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.result-message {
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 600;
+  display: none;
+  margin-top: 1rem;
+}
+
+.result-message.visible {
+  display: block;
+}
+
+.result-message.success {
+  background: #d1fae5;
+  color: #047857;
+  border: 2px solid #10b981;
+}
+
+.result-message.error {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 2px solid #ef4444;
+}
+
+.result-message.info {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 2px solid #3b82f6;
+}
+
+.clues-section {
+  background: var(--card-bg);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
+  position: sticky;
+  top: 2rem;
+}
+
+.clues-column {
+  margin-bottom: 2rem;
+}
+
+.clues-column:last-child {
+  margin-bottom: 0;
+}
+
+.clues-column h3 {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+  color: var(--primary-color);
+}
+
+.clues-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.clue-item {
+  padding: 0.75rem;
+  background: var(--bg-color);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+
+.clue-item:hover {
+  background: #e0f2fe;
+}
+
+.clue-item.active {
+  background: #dbeafe;
+  border-color: var(--primary-color);
+}
+
+.clue-number {
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-right: 0.5rem;
+}
+
+/* Keyboard hint */
+.keyboard-hint {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background: var(--bg-color);
+  border-radius: 6px;
+}

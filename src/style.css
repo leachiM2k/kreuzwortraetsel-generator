@@ -158,9 +158,10 @@ h2 {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  text-decoration: none;
 }
 
-.btn:disabled {
+.btn:disabled, .btn-disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }

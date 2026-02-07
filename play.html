@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kreuzworträtsel spielen</title>
+  </head>
+  <body>
+    <div class="play-container">
+      <header class="play-header">
+        <a href="/" class="back-link">← Zurück</a>
+        <h1 id="puzzle-title">Kreuzworträtsel</h1>
+        <button id="check-btn" class="btn btn-primary">Lösung prüfen</button>
+      </header>
+
+      <div class="play-content">
+        <div class="grid-section">
+          <div id="game-grid-container">
+            <!-- Interactive grid will be rendered here -->
+          </div>
+
+          <div class="controls">
+            <button id="clear-btn" class="btn btn-secondary">Löschen</button>
+            <button id="reveal-btn" class="btn btn-secondary">Lösung zeigen</button>
+          </div>
+
+          <div id="result-message" class="result-message"></div>
+        </div>
+
+        <div class="clues-section">
+          <div class="clues-column">
+            <h3>Waagerecht</h3>
+            <div id="play-across-clues" class="clues-list"></div>
+          </div>
+          <div class="clues-column">
+            <h3>Senkrecht</h3>
+            <div id="play-down-clues" class="clues-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/play.ts"></script>
+  </body>
+</html>
