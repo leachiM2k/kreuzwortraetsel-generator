@@ -10,6 +10,7 @@ class CrosswordApp {
   private pdfService: PDFGeneratorService;
   private currentPuzzle: CrosswordPuzzle | null = null;
   private entryCount = 0;
+  private readonly STORAGE_KEY = 'crossword-generator-data';
 
   constructor() {
     this.layoutService = new CrosswordLayoutService();
@@ -18,10 +19,15 @@ class CrosswordApp {
   }
 
   private init(): void {
-    // Add initial entries
-    this.addEntry();
-    this.addEntry();
-    this.addEntry();
+    // Try to load saved data first
+    const hasLoadedData = this.loadFromLocalStorage();
+
+    // If no saved data, add initial entries
+    if (!hasLoadedData) {
+      this.addEntry();
+      this.addEntry();
+      this.addEntry();
+    }
 
     // Event listeners
     document
@@ -36,6 +42,11 @@ class CrosswordApp {
     document
       .getElementById('generate-btn')
       ?.addEventListener('click', () => this.generatePDF());
+
+    // Add listener for title input
+    document
+      .getElementById('title')
+      ?.addEventListener('input', () => this.saveToLocalStorage());
   }
 
   private addEntry(): void {
@@ -58,6 +69,10 @@ class CrosswordApp {
 
     container.appendChild(entry);
 
+    // Add input listeners for auto-save
+    entry.querySelector('.entry-clue')?.addEventListener('input', () => this.saveToLocalStorage());
+    entry.querySelector('.entry-answer')?.addEventListener('input', () => this.saveToLocalStorage());
+
     // Add remove handler
     entry.querySelector('.remove-btn')?.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
@@ -68,8 +83,12 @@ class CrosswordApp {
       if (entryToRemove) {
         entryToRemove.remove();
         this.renumberEntries();
+        this.saveToLocalStorage();
       }
     });
+
+    // Save after adding entry
+    this.saveToLocalStorage();
   }
 
   private renumberEntries(): void {
@@ -113,6 +132,9 @@ class CrosswordApp {
         }
       }
     });
+
+    // Save to localStorage
+    this.saveToLocalStorage();
 
     this.showMessage('Beispiel geladen!', 'success');
   }
@@ -359,6 +381,65 @@ class CrosswordApp {
     const errorElement = document.getElementById('error-message');
     if (errorElement) {
       errorElement.className = 'error-message';
+    }
+  }
+
+  private saveToLocalStorage(): void {
+    try {
+      const title = (document.getElementById('title') as HTMLInputElement)?.value || '';
+      const entries: Array<{ clue: string; answer: string }> = [];
+
+      const entryElements = document.querySelectorAll('.entry');
+      entryElements.forEach((entry) => {
+        const clue = (entry.querySelector('.entry-clue') as HTMLInputElement)?.value || '';
+        const answer = (entry.querySelector('.entry-answer') as HTMLInputElement)?.value || '';
+        entries.push({ clue, answer });
+      });
+
+      const data = { title, entries };
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+    } catch (err) {
+      console.error('Fehler beim Speichern in localStorage:', err);
+    }
+  }
+
+  private loadFromLocalStorage(): boolean {
+    try {
+      const savedData = localStorage.getItem(this.STORAGE_KEY);
+      if (!savedData) return false;
+
+      const data = JSON.parse(savedData);
+
+      // Set title
+      const titleInput = document.getElementById('title') as HTMLInputElement;
+      if (titleInput && data.title) {
+        titleInput.value = data.title;
+      }
+
+      // Load entries
+      if (data.entries && Array.isArray(data.entries)) {
+        data.entries.forEach((entry: { clue: string; answer: string }) => {
+          this.addEntry();
+          const container = document.getElementById('entries-container');
+          if (container) {
+            const lastEntry = container.lastElementChild;
+            if (lastEntry) {
+              const clueInput = lastEntry.querySelector('.entry-clue') as HTMLInputElement;
+              const answerInput = lastEntry.querySelector('.entry-answer') as HTMLInputElement;
+              if (clueInput && answerInput) {
+                clueInput.value = entry.clue;
+                answerInput.value = entry.answer;
+              }
+            }
+          }
+        });
+        return true;
+      }
+
+      return false;
+    } catch (err) {
+      console.error('Fehler beim Laden aus localStorage:', err);
+      return false;
     }
   }
 }
