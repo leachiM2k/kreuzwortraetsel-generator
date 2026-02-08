@@ -234,10 +234,13 @@ class CrosswordApp {
 
     const grid = puzzle.grid;
 
+    // Calculate responsive cell size
+    const cellSize = this.calculateCellSize(grid.width, container);
+
     // Create grid element
     const gridElement = document.createElement('div');
     gridElement.className = 'crossword-grid';
-    gridElement.style.gridTemplateColumns = `repeat(${grid.width}, 40px)`;
+    gridElement.style.gridTemplateColumns = `repeat(${grid.width}, ${cellSize}px)`;
 
     // Create cells
     for (let row = 0; row < grid.height; row++) {
@@ -266,6 +269,29 @@ class CrosswordApp {
 
     container.innerHTML = '';
     container.appendChild(gridElement);
+  }
+
+  private calculateCellSize(gridWidth: number, container: HTMLElement): number {
+    const containerWidth = container.clientWidth;
+    const screenWidth = window.innerWidth;
+
+    // Maximum cell size based on screen width
+    let maxCellSize = 40;
+    if (screenWidth <= 380) {
+      maxCellSize = 18;
+    } else if (screenWidth <= 480) {
+      maxCellSize = 22;
+    } else if (screenWidth <= 768) {
+      maxCellSize = 26;
+    }
+
+    // Calculate size that fits the container (accounting for gaps and border)
+    const availableWidth = containerWidth - 40; // Reserve space for padding/border
+    const gapTotal = gridWidth - 1; // 1px gap between cells
+    const cellSize = Math.floor((availableWidth - gapTotal) / gridWidth);
+
+    // Use smaller of calculated size or max size, but at least 16px
+    return Math.max(16, Math.min(cellSize, maxCellSize));
   }
 
   private getWordNumberAt(

@@ -40,9 +40,13 @@ class CrosswordGame {
     if (!container) return;
 
     const grid = this.puzzle.grid;
+
+    // Calculate responsive cell size
+    const cellSize = this.calculateCellSize(grid.width, container);
+
     const gridElement = document.createElement('div');
     gridElement.className = 'game-grid';
-    gridElement.style.gridTemplateColumns = `repeat(${grid.width}, 45px)`;
+    gridElement.style.gridTemplateColumns = `repeat(${grid.width}, ${cellSize}px)`;
 
     for (let row = 0; row < grid.height; row++) {
       for (let col = 0; col < grid.width; col++) {
@@ -76,7 +80,7 @@ class CrosswordGame {
 
           // Cell click handler
           cell.addEventListener('click', () => {
-            this.selectCell(row, col);
+            this.selectCell(row, col, true);
           });
 
           // Input handlers
@@ -89,7 +93,10 @@ class CrosswordGame {
           });
 
           input.addEventListener('focus', () => {
-            this.selectCell(row, col);
+            // Only update if not already the current cell
+            if (!this.currentCell || this.currentCell.row !== row || this.currentCell.col !== col) {
+              this.selectCell(row, col, false);
+            }
           });
         }
 
@@ -98,13 +105,37 @@ class CrosswordGame {
     }
 
     container.innerHTML = '';
-    container.appendChild(gridElement);
 
     // Add keyboard hint
     const hint = document.createElement('div');
     hint.className = 'keyboard-hint';
     hint.textContent = '💡 Pfeiltasten zur Navigation • Tab für Richtungswechsel • Rücktaste zum Löschen';
     container.appendChild(hint);
+
+    container.appendChild(gridElement);
+  }
+
+  private calculateCellSize(gridWidth: number, container: HTMLElement): number {
+    const containerWidth = container.clientWidth;
+    const screenWidth = window.innerWidth;
+
+    // Maximum cell size based on screen width
+    let maxCellSize = 45;
+    if (screenWidth <= 380) {
+      maxCellSize = 20;
+    } else if (screenWidth <= 480) {
+      maxCellSize = 24;
+    } else if (screenWidth <= 768) {
+      maxCellSize = 30;
+    }
+
+    // Calculate size that fits the container (accounting for gaps and border)
+    const availableWidth = containerWidth - 40; // Reserve space for padding/border
+    const gapTotal = gridWidth - 1; // 1px gap between cells
+    const cellSize = Math.floor((availableWidth - gapTotal) / gridWidth);
+
+    // Use smaller of calculated size or max size, but at least 18px
+    return Math.max(18, Math.min(cellSize, maxCellSize));
   }
 
   private getWordNumberAt(row: number, col: number): number | null {
@@ -185,9 +216,10 @@ class CrosswordGame {
     });
   }
 
-  private selectCell(row: number, col: number): void {
+  private selectCell(row: number, col: number, toggleDirection: boolean = false): void {
     // If clicking the same cell, toggle direction
     if (
+      toggleDirection &&
       this.currentCell &&
       this.currentCell.row === row &&
       this.currentCell.col === col
@@ -270,9 +302,9 @@ class CrosswordGame {
     const input = document.querySelector(
       `input[data-row="${row}"][data-col="${col}"]`
     ) as HTMLInputElement;
-    if (input) {
+    if (input && document.activeElement !== input) {
       input.focus();
-      input.select();
+      setTimeout(() => input.select(), 0);
     }
   }
 
