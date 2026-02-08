@@ -1,6 +1,7 @@
 import './style.css';
 import { CrosswordLayoutService } from './services/CrosswordLayoutService';
 import { PDFGeneratorService } from './services/PDFGeneratorService';
+import { serialize } from './services/PuzzleSerializer';
 import { WordEntry } from './models/WordEntry';
 import { CrosswordPuzzle } from './models/CrosswordPuzzle';
 
@@ -474,9 +475,7 @@ class CrosswordApp {
     }
 
     try {
-      // Serialize puzzle to JSON and encode to base64
-      const puzzleData = JSON.stringify(this.currentPuzzle);
-      const encodedData = btoa(puzzleData);
+      const encodedData = serialize(this.currentPuzzle);
 
       const playBtn = document.getElementById(
           'play-btn'

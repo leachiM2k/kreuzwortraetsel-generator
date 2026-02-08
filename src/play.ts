@@ -2,7 +2,7 @@ import './play.css';
 import { CrosswordPuzzle } from './models/CrosswordPuzzle';
 import { PlacedWord } from './models/PlacedWord';
 import { Direction } from './models/Direction';
-import { CrosswordGrid } from './models/CrosswordGrid';
+import { deserialize } from './services/PuzzleSerializer';
 
 interface CellPosition {
   row: number;
@@ -566,25 +566,7 @@ function loadPuzzle(): CrosswordPuzzle | null {
       throw new Error('No puzzle data in URL');
     }
 
-    const decodedData = atob(hash);
-    const puzzleData = JSON.parse(decodedData);
-
-    // Reconstruct CrosswordGrid instance from plain object
-    const grid = new CrosswordGrid(
-      puzzleData.grid.width,
-      puzzleData.grid.height
-    );
-    grid.grid = puzzleData.grid.grid;
-    grid.placedWords = puzzleData.grid.placedWords;
-
-    const puzzle: CrosswordPuzzle = {
-      grid,
-      title: puzzleData.title,
-      acrossClues: puzzleData.acrossClues,
-      downClues: puzzleData.downClues,
-    };
-
-    return puzzle;
+    return deserialize(hash);
   } catch (err) {
     console.error('Failed to load puzzle:', err);
     alert('Fehler beim Laden des Kreuzworträtsels. Bitte erstelle ein neues.');
