@@ -42,10 +42,123 @@ class CrosswordApp {
       .getElementById('generate-btn')
       ?.addEventListener('click', () => this.generatePDF());
 
+    // AI Prompt listeners
+    document
+      .getElementById('ai-prompt-btn')
+      ?.addEventListener('click', () => this.toggleAIPrompt());
+    document
+      .getElementById('close-ai-prompt')
+      ?.addEventListener('click', () => this.toggleAIPrompt());
+    document
+      .getElementById('copy-prompt-btn')
+      ?.addEventListener('click', () => this.copyPrompt());
+    document
+      .getElementById('load-json-btn')
+      ?.addEventListener('click', () => this.loadFromJSON());
+
     // Add listener for title input
     document
       .getElementById('title')
       ?.addEventListener('input', () => this.saveToLocalStorage());
+  }
+
+  private toggleAIPrompt(): void {
+    const section = document.getElementById('ai-prompt-section');
+    if (section) {
+      section.style.display = section.style.display === 'none' ? 'block' : 'none';
+    }
+  }
+
+  private async copyPrompt(): Promise<void> {
+    const promptText = document.getElementById('ai-prompt-text')?.textContent;
+    const copyBtn = document.getElementById('copy-prompt-btn');
+
+    if (promptText && copyBtn) {
+      try {
+        await navigator.clipboard.writeText(promptText);
+        copyBtn.textContent = '✓ Kopiert!';
+        copyBtn.classList.add('copied');
+
+        setTimeout(() => {
+          copyBtn.textContent = '📋 Kopieren';
+          copyBtn.classList.remove('copied');
+        }, 2000);
+      } catch (err) {
+        this.showMessage('Fehler beim Kopieren. Bitte manuell kopieren.', 'error');
+      }
+    }
+  }
+
+  private loadFromJSON(): void {
+    const textarea = document.getElementById('json-input') as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const jsonText = textarea.value.trim();
+    if (!jsonText) {
+      this.showMessage('Bitte füge die JSON-Ausgabe der KI ein.', 'error');
+      return;
+    }
+
+    try {
+      const data = JSON.parse(jsonText);
+
+      // Validate structure
+      if (!data.title || !Array.isArray(data.entries)) {
+        throw new Error('Ungültiges JSON-Format');
+      }
+
+      // Validate entries
+      for (const entry of data.entries) {
+        if (!entry.clue || !entry.answer) {
+          throw new Error('Jeder Eintrag muss "clue" und "answer" enthalten');
+        }
+        if (!/^[a-zA-ZäöüÄÖÜß\s]+$/.test(entry.answer)) {
+          throw new Error(`Antwort "${entry.answer}" enthält ungültige Zeichen`);
+        }
+      }
+
+      // Clear existing entries
+      const container = document.getElementById('entries-container');
+      if (!container) return;
+      container.innerHTML = '';
+      this.entryCount = 0;
+
+      // Set title
+      const titleInput = document.getElementById('title') as HTMLInputElement;
+      if (titleInput) {
+        titleInput.value = data.title;
+      }
+
+      // Add entries
+      data.entries.forEach((entry: { clue: string; answer: string }) => {
+        this.addEntry();
+        const lastEntry = container.lastElementChild;
+        if (lastEntry) {
+          const clueInput = lastEntry.querySelector('.entry-clue') as HTMLInputElement;
+          const answerInput = lastEntry.querySelector('.entry-answer') as HTMLInputElement;
+          if (clueInput && answerInput) {
+            clueInput.value = entry.clue;
+            answerInput.value = entry.answer.toUpperCase();
+          }
+        }
+      });
+
+      // Save and close
+      this.saveToLocalStorage();
+      this.toggleAIPrompt();
+      textarea.value = '';
+
+      this.showMessage(
+        `✓ ${data.entries.length} Einträge erfolgreich geladen!`,
+        'success'
+      );
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Ungültiges JSON-Format';
+      this.showMessage(
+        `Fehler beim Laden: ${errorMsg}. Bitte überprüfe das JSON-Format.`,
+        'error'
+      );
+    }
   }
 
   private addEntry(): void {

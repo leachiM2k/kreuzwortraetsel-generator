@@ -30,9 +30,69 @@
           <div class="entries-section">
             <div class="entries-header">
               <h2>Fragen und Antworten</h2>
-              <button id="sample-btn" class="btn btn-secondary">
-                Beispiel laden
-              </button>
+              <div class="header-buttons">
+                <button id="ai-prompt-btn" class="btn btn-secondary">
+                  🤖 AI-Prompt
+                </button>
+                <button id="sample-btn" class="btn btn-secondary">
+                  Beispiel laden
+                </button>
+              </div>
+            </div>
+
+            <div id="ai-prompt-section" class="ai-prompt-section" style="display: none;">
+              <div class="ai-prompt-header">
+                <h3>🤖 KI-Unterstützung</h3>
+                <button id="close-ai-prompt" class="close-btn">✕</button>
+              </div>
+
+              <p class="ai-prompt-description">
+                Kopiere diesen Prompt und füge ihn in ChatGPT, Claude oder Gemini ein.
+                Die KI erstellt ein Kreuzworträtsel im JSON-Format, das du unten einfügen kannst.
+              </p>
+
+              <div class="prompt-box">
+                <div class="prompt-header">
+                  <span>Prompt für KI</span>
+                  <button id="copy-prompt-btn" class="btn-copy">📋 Kopieren</button>
+                </div>
+                <pre id="ai-prompt-text" class="prompt-text">Erstelle ein Kreuzworträtsel zu folgendem Thema: [DEIN THEMA]
+
+Anforderungen:
+- Mindestens 10-15 Frage-Antwort-Paare
+- Antworten nur in GROSSBUCHSTABEN
+- Nur Buchstaben (A-Z, Ä, Ö, Ü, ß) - keine Zahlen, Leerzeichen oder Sonderzeichen
+- Fragen sollten klar und eindeutig sein
+- Antworten sollten zwischen 3-12 Buchstaben lang sein
+
+Gib das Ergebnis in diesem exakten JSON-Format zurück:
+
+{
+  "title": "Titel des Kreuzworträtsels",
+  "entries": [
+    {
+      "clue": "Erste Frage",
+      "answer": "ANTWORT"
+    },
+    {
+      "clue": "Zweite Frage",
+      "answer": "LÖSUNG"
+    }
+  ]
+}</pre>
+              </div>
+
+              <div class="json-input-box">
+                <label for="json-input">JSON-Ausgabe der KI hier einfügen:</label>
+                <textarea
+                  id="json-input"
+                  placeholder='{"title": "Mein Kreuzworträtsel", "entries": [...]}'
+                  rows="6"
+                ></textarea>
+                <button id="load-json-btn" class="btn btn-primary">
+                  JSON laden
+                </button>
+              </div>
             </div>
 
             <div id="entries-container">

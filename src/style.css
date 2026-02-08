@@ -141,10 +141,19 @@ textarea:focus {
   gap: 0.75rem;
 }
 
+.header-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
 @media (max-width: 480px) {
   .entries-header {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .header-buttons {
+    flex-direction: column;
   }
 }
 
@@ -390,6 +399,123 @@ footer {
   padding: 2rem;
   color: var(--text-secondary);
   border-top: 1px solid var(--border-color);
+}
+
+/* AI Prompt Section */
+.ai-prompt-section {
+  background: var(--bg-color);
+  border: 2px solid var(--primary-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.ai-prompt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.ai-prompt-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--primary-color);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  transition: color 0.2s;
+}
+
+.close-btn:hover {
+  color: var(--danger-color);
+}
+
+.ai-prompt-description {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.prompt-box {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.prompt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--bg-color);
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 600;
+}
+
+.btn-copy {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-copy:hover {
+  background: #1d4ed8;
+}
+
+.btn-copy.copied {
+  background: var(--success-color);
+}
+
+.prompt-text {
+  padding: 1rem;
+  margin: 0;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.json-input-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.json-input-box label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.json-input-box textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 0.875rem;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.json-input-box textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
 }
 
 /* Loading spinner */
