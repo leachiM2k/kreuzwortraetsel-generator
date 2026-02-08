@@ -5,6 +5,7 @@ import { Direction } from '../models/Direction';
 import { PlacedWord } from '../models/PlacedWord';
 
 const FORMAT_PREFIX = 'Z';
+const ENTRIES_PREFIX = 'E';
 
 function base64UrlEncode(bytes: Uint8Array): string {
   let binary = '';
@@ -155,4 +156,80 @@ export function deserialize(hash: string): CrosswordPuzzle {
     acrossClues: puzzleData.acrossClues,
     downClues: puzzleData.downClues,
   };
+}
+
+// Entry serialization (for generator page)
+interface EntriesData {
+  title: string;
+  entries: Array<{ clue: string; answer: string }>;
+}
+
+function toCompactEntries(data: EntriesData): string {
+  const lines: string[] = [];
+
+  // Version
+  lines.push('v1');
+
+  // Title
+  lines.push(data.title);
+
+  // Entries: answer|clue (one per line)
+  for (const entry of data.entries) {
+    lines.push(`${entry.answer}|${entry.clue}`);
+  }
+
+  return lines.join('\n');
+}
+
+function fromCompactEntries(text: string): EntriesData {
+  const lines = text.split('\n');
+
+  // Version check
+  if (lines[0] !== 'v1') {
+    throw new Error(`Unknown entries format version: ${lines[0]}`);
+  }
+
+  // Title
+  const title = lines[1];
+
+  // Entries start at line 2
+  const entries: Array<{ clue: string; answer: string }> = [];
+  for (let i = 2; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line) continue;
+
+    // Split at first pipe: answer|clue (clue may contain pipes)
+    const pipeIndex = line.indexOf('|');
+    if (pipeIndex === -1) continue;
+
+    const answer = line.substring(0, pipeIndex);
+    const clue = line.substring(pipeIndex + 1);
+    entries.push({ clue, answer });
+  }
+
+  return { title, entries };
+}
+
+export function serializeEntries(data: EntriesData): string {
+  const compact = toCompactEntries(data);
+  const encoder = new TextEncoder();
+  const compressed = deflate(encoder.encode(compact));
+  return ENTRIES_PREFIX + base64UrlEncode(compressed);
+}
+
+export function deserializeEntries(hash: string): EntriesData | null {
+  if (!hash.startsWith(ENTRIES_PREFIX)) {
+    return null;
+  }
+
+  try {
+    const encoded = hash.substring(ENTRIES_PREFIX.length);
+    const compressed = base64UrlDecode(encoded);
+    const decoder = new TextDecoder();
+    const text = decoder.decode(inflate(compressed));
+    return fromCompactEntries(text);
+  } catch (err) {
+    console.error('Failed to deserialize entries:', err);
+    return null;
+  }
 }

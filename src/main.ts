@@ -1,7 +1,7 @@
 import './style.css';
 import { CrosswordLayoutService } from './services/CrosswordLayoutService';
 import { PDFGeneratorService } from './services/PDFGeneratorService';
-import { serialize } from './services/PuzzleSerializer';
+import { serialize, serializeEntries, deserializeEntries } from './services/PuzzleSerializer';
 import { WordEntry } from './models/WordEntry';
 import { CrosswordPuzzle } from './models/CrosswordPuzzle';
 
@@ -19,11 +19,12 @@ class CrosswordApp {
   }
 
   private init(): void {
-    // Try to load saved data first
-    const hasLoadedData = this.loadFromLocalStorage();
+    // Priority: URL hash > localStorage > default
+    const hasLoadedFromURL = this.loadFromURL();
+    const hasLoadedFromStorage = hasLoadedFromURL ? false : this.loadFromLocalStorage();
 
     // If no saved data, add initial entries
-    if (!hasLoadedData) {
+    if (!hasLoadedFromURL && !hasLoadedFromStorage) {
       this.addEntry();
       this.addEntry();
       this.addEntry();
@@ -329,6 +330,9 @@ class CrosswordApp {
 
       this.setPlayPageLink();
 
+      // Update URL with current entries
+      this.updateURL();
+
       this.showMessage(
         `Kreuzworträtsel erfolgreich erstellt! ${this.currentPuzzle.grid.placedWords.length} Wörter platziert.`,
         'success'
@@ -577,6 +581,71 @@ class CrosswordApp {
     } catch (err) {
       console.error('Fehler beim Laden aus localStorage:', err);
       return false;
+    }
+  }
+
+  private loadFromURL(): boolean {
+    try {
+      const hash = window.location.hash.substring(1);
+      if (!hash) return false;
+
+      const data = deserializeEntries(hash);
+      if (!data) return false;
+
+      // Clear existing entries
+      const container = document.getElementById('entries-container');
+      if (!container) return false;
+      container.innerHTML = '';
+      this.entryCount = 0;
+
+      // Set title
+      const titleInput = document.getElementById('title') as HTMLInputElement;
+      if (titleInput) {
+        titleInput.value = data.title;
+      }
+
+      // Load entries
+      data.entries.forEach((entry) => {
+        this.addEntry();
+        const lastEntry = container.lastElementChild;
+        if (lastEntry) {
+          const clueInput = lastEntry.querySelector('.entry-clue') as HTMLInputElement;
+          const answerInput = lastEntry.querySelector('.entry-answer') as HTMLInputElement;
+          if (clueInput && answerInput) {
+            clueInput.value = entry.clue;
+            answerInput.value = entry.answer;
+          }
+        }
+      });
+
+      // Save to localStorage so it persists
+      this.saveToLocalStorage();
+
+      return true;
+    } catch (err) {
+      console.error('Fehler beim Laden aus URL:', err);
+      return false;
+    }
+  }
+
+  private updateURL(): void {
+    try {
+      const title = (document.getElementById('title') as HTMLInputElement)?.value || '';
+      const entries: Array<{ clue: string; answer: string }> = [];
+
+      const entryElements = document.querySelectorAll('.entry');
+      entryElements.forEach((entry) => {
+        const clue = (entry.querySelector('.entry-clue') as HTMLInputElement)?.value || '';
+        const answer = (entry.querySelector('.entry-answer') as HTMLInputElement)?.value || '';
+        if (clue && answer) {
+          entries.push({ clue, answer });
+        }
+      });
+
+      const encoded = serializeEntries({ title, entries });
+      window.history.replaceState(null, '', `#${encoded}`);
+    } catch (err) {
+      console.error('Fehler beim Aktualisieren der URL:', err);
     }
   }
 }
