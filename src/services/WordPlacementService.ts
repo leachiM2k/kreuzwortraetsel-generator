@@ -12,18 +12,85 @@ interface PlacementOption {
   score: number;
 }
 
+interface GridState {
+  grid: CrosswordGrid;
+  placedCount: number;
+  unplacedWords: WordEntry[];
+}
+
 export class WordPlacementService {
   generateLayout(entries: WordEntry[]): CrosswordGrid {
     if (!entries || entries.length === 0) {
       throw new Error('No words provided');
     }
 
-    // Normalize and sort words by length (longest first)
-    const sortedEntries = entries
-      .map(normalizeWordEntry)
-      .sort((a, b) => b.answer.length - a.answer.length);
+    // Normalize entries
+    const normalized = entries.map(normalizeWordEntry);
 
-    // Calculate initial grid size
+    // Try multiple strategies and pick the best result
+    const strategies = [
+      () => this.tryStrategy(normalized, 'longest-first'),
+      () => this.tryStrategy(normalized, 'most-connections'),
+      () => this.tryStrategy(normalized, 'balanced'),
+    ];
+
+    let bestGrid: CrosswordGrid | null = null;
+    let bestCount = 0;
+
+    for (const strategy of strategies) {
+      try {
+        const result = strategy();
+        if (result.placedCount > bestCount) {
+          bestGrid = result.grid;
+          bestCount = result.placedCount;
+        }
+      } catch (e) {
+        // Strategy failed, try next
+        console.log(`Strategy failed: ${e}`);
+      }
+    }
+
+    if (!bestGrid || bestCount < 3) {
+      throw new Error('Could not place enough words to create a crossword');
+    }
+
+    console.log(
+      `Successfully placed ${bestCount} out of ${entries.length} words using best strategy`
+    );
+    return bestGrid;
+  }
+
+  private tryStrategy(
+    entries: WordEntry[],
+    strategy: 'longest-first' | 'most-connections' | 'balanced'
+  ): GridState {
+    // Sort entries based on strategy
+    let sortedEntries: WordEntry[];
+
+    switch (strategy) {
+      case 'longest-first':
+        sortedEntries = entries
+          .slice()
+          .sort((a, b) => b.answer.length - a.answer.length);
+        break;
+
+      case 'most-connections':
+        sortedEntries = this.sortByConnectionPotential(entries);
+        break;
+
+      case 'balanced':
+        // Mix of length and connection potential
+        sortedEntries = entries
+          .slice()
+          .sort((a, b) => {
+            const scoreA = a.answer.length + this.getUniqueChars(a.answer).size * 2;
+            const scoreB = b.answer.length + this.getUniqueChars(b.answer).size * 2;
+            return scoreB - scoreA;
+          });
+        break;
+    }
+
+    // Calculate grid size
     const totalLength = sortedEntries.reduce(
       (sum, e) => sum + e.answer.length,
       0
@@ -35,7 +102,7 @@ export class WordPlacementService {
 
     const grid = new CrosswordGrid(initialSize, initialSize);
 
-    // Place first word horizontally in the middle
+    // Place first word
     const firstEntry = sortedEntries[0];
     const firstWord = firstEntry.answer;
     const startRow = Math.floor(initialSize / 2);
@@ -52,36 +119,82 @@ export class WordPlacementService {
 
     grid.addPlacedWord(firstPlaced);
     console.log(
-      `Placed first word: ${firstWord} at (${startRow}, ${startCol})`
+      `[${strategy}] Placed first word: ${firstWord} at (${startRow}, ${startCol})`
     );
 
-    // Place remaining words
+    // Try to place remaining words with multiple attempts
     const unplaced: WordEntry[] = [];
     for (let i = 1; i < sortedEntries.length; i++) {
       const entry = sortedEntries[i];
-      if (!this.placeWord(grid, entry)) {
+      if (!this.placeWordWithRetry(grid, entry, sortedEntries, i)) {
         unplaced.push(entry);
-        console.warn(`Could not place word: ${entry.answer}`);
       }
     }
 
-    if (grid.placedWords.length < 3) {
-      throw new Error('Could not place enough words to create a crossword');
+    // Try unplaced words again (second pass)
+    const stillUnplaced: WordEntry[] = [];
+    for (const entry of unplaced) {
+      if (!this.placeWordWithRetry(grid, entry, sortedEntries, sortedEntries.length)) {
+        stillUnplaced.push(entry);
+        console.warn(`[${strategy}] Could not place word: ${entry.answer}`);
+      } else {
+        console.log(`[${strategy}] Placed word on second attempt: ${entry.answer}`);
+      }
     }
 
-    // Optimize grid by trimming empty space
+    // Optimize grid
     this.optimizeGrid(grid);
 
-    // Assign numbers to words
+    // Assign numbers
     this.assignNumbers(grid);
 
     console.log(
-      `Successfully placed ${grid.placedWords.length} out of ${sortedEntries.length} words`
+      `[${strategy}] Result: ${grid.placedWords.length} out of ${sortedEntries.length} words`
     );
-    return grid;
+
+    return {
+      grid,
+      placedCount: grid.placedWords.length,
+      unplacedWords: stillUnplaced,
+    };
   }
 
-  private placeWord(grid: CrosswordGrid, entry: WordEntry): boolean {
+  private sortByConnectionPotential(entries: WordEntry[]): WordEntry[] {
+    // Count letter frequencies across all words
+    const letterFreq = new Map<string, number>();
+
+    for (const entry of entries) {
+      for (const char of entry.answer) {
+        letterFreq.set(char, (letterFreq.get(char) || 0) + 1);
+      }
+    }
+
+    // Sort by words that have most common letters
+    return entries
+      .slice()
+      .sort((a, b) => {
+        const scoreA = Array.from(a.answer).reduce(
+          (sum, char) => sum + (letterFreq.get(char) || 0),
+          0
+        );
+        const scoreB = Array.from(b.answer).reduce(
+          (sum, char) => sum + (letterFreq.get(char) || 0),
+          0
+        );
+        return scoreB - scoreA;
+      });
+  }
+
+  private getUniqueChars(word: string): Set<string> {
+    return new Set(Array.from(word));
+  }
+
+  private placeWordWithRetry(
+    grid: CrosswordGrid,
+    entry: WordEntry,
+    allEntries: WordEntry[],
+    currentIndex: number
+  ): boolean {
     const word = entry.answer;
     const options = this.findAllPlacementOptions(grid, word);
 
@@ -89,11 +202,16 @@ export class WordPlacementService {
       return false;
     }
 
-    // Sort by score (number of intersections)
+    // Enhanced scoring
+    for (const option of options) {
+      option.score = this.calculatePlacementScore(grid, word, option, allEntries, currentIndex);
+    }
+
+    // Sort by enhanced score
     options.sort((a, b) => b.score - a.score);
 
-    // Try best options
-    const tryCount = Math.min(10, options.length);
+    // Try more options
+    const tryCount = Math.min(20, options.length);
     for (let i = 0; i < tryCount; i++) {
       const option = options[i];
       if (this.canPlaceWord(grid, word, option)) {
@@ -103,18 +221,82 @@ export class WordPlacementService {
           row: option.row,
           col: option.col,
           direction: option.direction,
-          number: 0, // Will be assigned later
+          number: 0,
         };
 
         grid.addPlacedWord(placed);
         console.log(
-          `Placed word: ${word} at (${option.row}, ${option.col}) ${option.direction}`
+          `Placed word: ${word} at (${option.row}, ${option.col}) ${option.direction} (score: ${option.score.toFixed(2)})`
         );
         return true;
       }
     }
 
     return false;
+  }
+
+  private calculatePlacementScore(
+    grid: CrosswordGrid,
+    word: string,
+    option: PlacementOption,
+    remainingEntries: WordEntry[],
+    currentIndex: number
+  ): number {
+    let score = 0;
+
+    // Count actual intersections with existing words
+    let intersections = 0;
+    for (let i = 0; i < word.length; i++) {
+      const r = option.row + (option.direction === Direction.VERTICAL ? i : 0);
+      const c = option.col + (option.direction === Direction.HORIZONTAL ? i : 0);
+      if (grid.getCell(r, c) === word.charAt(i)) {
+        intersections++;
+      }
+    }
+    score += intersections * 10;
+
+    // Bonus for central placement
+    const centerRow = grid.height / 2;
+    const centerCol = grid.width / 2;
+    const distance = Math.abs(option.row - centerRow) + Math.abs(option.col - centerCol);
+    score -= distance * 0.1;
+
+    // Bonus for creating future connection opportunities
+    const potentialConnections = this.countPotentialConnections(
+      grid,
+      word,
+      option,
+      remainingEntries,
+      currentIndex
+    );
+    score += potentialConnections * 2;
+
+    return score;
+  }
+
+  private countPotentialConnections(
+    _grid: CrosswordGrid,
+    word: string,
+    _option: PlacementOption,
+    remainingEntries: WordEntry[],
+    currentIndex: number
+  ): number {
+    let count = 0;
+
+    // Check how many remaining words could potentially intersect
+    for (let i = currentIndex + 1; i < remainingEntries.length; i++) {
+      const remainingWord = remainingEntries[i].answer;
+
+      // Check if words share any letters
+      for (const char of word) {
+        if (remainingWord.includes(char)) {
+          count++;
+          break;
+        }
+      }
+    }
+
+    return count;
   }
 
   private findAllPlacementOptions(
@@ -149,7 +331,6 @@ export class WordPlacementService {
         const existingChar = existingWord.word.charAt(j);
 
         if (newChar === existingChar) {
-          // Calculate position for new word
           let newRow: number, newCol: number;
 
           if (newDirection === Direction.HORIZONTAL) {
@@ -213,11 +394,11 @@ export class WordPlacementService {
 
       if (existing !== ' ') {
         if (existing !== newChar) {
-          return false; // Conflict
+          return false;
         }
         intersectionCount++;
       } else {
-        // Check perpendicular cells (no touching words except at intersections)
+        // Check perpendicular cells
         if (option.direction === Direction.HORIZONTAL) {
           if (!grid.isEmpty(r - 1, c) || !grid.isEmpty(r + 1, c)) {
             return false;

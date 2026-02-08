@@ -6,7 +6,6 @@ import * as path from 'path'
 describe('Play Page UI Tests', () => {
   let dom: JSDOM
   let document: Document
-  let window: Window
 
   beforeEach(() => {
     // Load the actual play.html file
@@ -22,7 +21,6 @@ describe('Play Page UI Tests', () => {
     })
 
     document = dom.window.document
-    window = dom.window as unknown as Window
   })
 
   describe('Page Structure', () => {
