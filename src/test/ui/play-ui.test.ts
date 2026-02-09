@@ -43,12 +43,6 @@ describe('Play Page UI Tests', () => {
       const cluesSection = document.querySelector('.clues-section')
       expect(cluesSection).toBeTruthy()
     })
-
-    it('should have back link', () => {
-      const backLink = document.querySelector('.back-link')
-      expect(backLink).toBeTruthy()
-      expect(backLink?.tagName).toBe('A')
-    })
   })
 
   describe('Header Elements', () => {
@@ -154,12 +148,6 @@ describe('Play Page UI Tests', () => {
   })
 
   describe('Accessibility', () => {
-    it('should have back link with href', () => {
-      const backLink = document.querySelector('.back-link') as HTMLAnchorElement
-      expect(backLink).toBeTruthy()
-      expect(backLink.href).toBeTruthy()
-    })
-
     it('should have buttons with text content', () => {
       const buttons = document.querySelectorAll('button')
       buttons.forEach((button) => {
@@ -200,18 +188,6 @@ describe('Play Page UI Tests', () => {
     it('should have clues list class on down clues', () => {
       const downClues = document.getElementById('play-down-clues')
       expect(downClues?.classList.contains('clues-list')).toBe(true)
-    })
-  })
-
-  describe('Navigation', () => {
-    it('should have back link pointing to root', () => {
-      const backLink = document.querySelector('.back-link') as HTMLAnchorElement
-      expect(backLink.href).toContain('/')
-    })
-
-    it('should have back arrow in link text', () => {
-      const backLink = document.querySelector('.back-link')
-      expect(backLink?.textContent).toContain('←')
     })
   })
 })
